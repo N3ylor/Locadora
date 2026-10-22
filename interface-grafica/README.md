@@ -40,7 +40,7 @@ A tela inicial mostra um resumo (quantidade de clientes, itens e locações em a
   - filtre para mostrar só as locações em aberto.
 - Erros de validação e de regra de negócio aparecem em caixas de mensagem, sem fechar o programa.
 
-## 💰 Regras de negócio
+##  Regras de negócio
 
 | Item | Diária | Multa por dia de atraso |
 | --- | --- | --- |
@@ -58,7 +58,7 @@ Dentro de `gui.py`, as janelas reaproveitam código por herança: `JanelaCrud` �
 
 O diagrama de classes do domínio está em [`UML.md`](UML.md).
 
-## 📁 Estrutura
+##  Estrutura
 
 ```
 interface-grafica/
@@ -81,7 +81,7 @@ interface-grafica/
 └── UML.md                  # Diagrama de classes (Mermaid)
 ```
 
-## 💡 Diferença para a versão terminal
+##  Diferença para a versão terminal
 
 Além da interface, esta pasta traz uma evolução nas regras: a classe `Locadora` ganhou `atualizar_item`, que permite editar filmes e jogos já cadastrados (mantendo a disponibilidade e bloqueando a troca de tipo) — algo que o formulário do acervo precisa e que o menu de terminal original não tinha. Por isso esta versão tem 2 testes a mais.
 

@@ -53,7 +53,7 @@ O projeto é dividido em camadas, e cada uma só conhece a de baixo:
 
 O diagrama completo, com o mapa de onde cada relação está no código, fica em [`UML.md`](UML.md).
 
-## 📁 Estrutura
+##  Estrutura
 
 ```
 terminal/

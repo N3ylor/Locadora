@@ -25,7 +25,7 @@ Independente da pasta, as duas versões compartilham o mesmo design em camadas:
 - **Serviços** (`servicos.py`): a classe `Locadora`, que concentra as regras de negócio e é a única porta de entrada para qualquer interface.
 - **Interface** (`menu.py` e `gui.py`): só pergunta e mostra. Não toma decisão nenhuma — por isso dá para trocar o terminal pelas janelas sem mexer em uma linha das regras.
 
-## 🧩 Conceitos de POO aplicados
+##  Conceitos de POO aplicados
 
 | Conceito | Onde aparece |
 | --- | --- |
@@ -37,7 +37,7 @@ Independente da pasta, as duas versões compartilham o mesmo design em camadas:
 
 ![Diagrama de classes](UML/diagrama_classes.png)
 
-## 💰 Regras de negócio
+##  Regras de negócio
 
 | Item | Diária | Multa por dia de atraso |
 | --- | --- | --- |
@@ -49,7 +49,7 @@ Independente da pasta, as duas versões compartilham o mesmo design em camadas:
 - Uma locação pode ter vários itens, cada um com o seu prazo.
 - A multa é calculada item por item na devolução, e o recibo mostra o total final.
 
-## ✅ Testes
+##  Testes
 
 As duas versões têm testes automáticos com `unittest` — modelos e regras de negócio, usando banco em memória. Para rodar, dentro da pasta da versão escolhida:
 

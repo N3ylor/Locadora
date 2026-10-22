@@ -32,7 +32,7 @@ python3 -m unittest discover -s tests -t .
 - Datas no formato `dd/mm/aaaa` (Enter usa o dia de hoje)
 - Erros de regra de negócio aparecem como mensagem, sem derrubar o programa
 
-## 💰 Regras de negócio
+##  Regras de negócio
 
 | Item | Diária | Multa por dia de atraso |
 | --- | --- | --- |

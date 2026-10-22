@@ -1,0 +1,92 @@
+---
+config:
+  theme: dark
+  look: classic
+  fontFamily: '''Recursive Variable'', sans-serif'
+  themeVariables:
+    fontFamily: '''Recursive Variable'', sans-serif'
+---
+classDiagram
+    direction TB
+
+    class Pessoa {
+        <<abstract>>
+        +int id
+        +str nome
+        +str cpf
+        +descricao()* str
+    }
+    class Cliente {
+        +int LIMITE_ITENS = 3
+        +descricao() str
+    }
+    class Funcionario {
+        +str cargo
+        +descricao() str
+    }
+    class Endereco {
+        +str rua
+        +str numero
+        +str cidade
+        +str uf
+    }
+
+    class Item {
+        <<abstract>>
+        +int id
+        +str titulo
+        +int ano
+        +bool disponivel
+        +valor_diaria()* float
+        +multa_por_dia()* float
+        +descricao()* str
+        +calcular_valor(dias) float
+        +calcular_multa(dias_atraso) float
+        +emprestar()
+        +devolver()
+    }
+    class Filme {
+        +str genero
+        +int duracao_min
+        +bool lancamento
+        +valor_diaria() float
+        +multa_por_dia() float
+        +descricao() str
+    }
+    class Jogo {
+        +str plataforma
+        +valor_diaria() float
+        +multa_por_dia() float
+        +descricao() str
+        +calcular_valor(dias) float
+    }
+
+    class Locacao {
+        +int id
+        +date data_locacao
+        +date data_devolucao
+        +float multa
+        +bool devolvida
+        +float total
+        +adicionar_item(item, dias)
+        +devolver(data)
+    }
+    class ItemLocacao {
+        +int dias
+        +date data_prevista
+        +float valor
+        +multa(data_devolucao) float
+    }
+    class Recibo {
+        +gerar(locacao)$ str
+    }
+    Pessoa <|-- Cliente
+    Pessoa <|-- Funcionario
+    Item <|-- Filme
+    Item <|-- Jogo
+    Cliente "1" *-- "1" Endereco : endereco
+    Locacao "1" *-- "1..*" ItemLocacao : itens
+    Locacao "*" --> "1" Cliente : cliente
+    Locacao "*" --> "1" Funcionario : funcionario
+    ItemLocacao "*" --> "1" Item : item
+    Recibo ..> Locacao : parâmetro de gerar()

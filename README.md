@@ -6,7 +6,7 @@
 
 Tudo usa apenas a biblioteca padrão do Python, com os dados guardados em **SQLite**.
 
-## 📂 Estrutura do repositório
+##  Estrutura do repositório
 
 Este repositório reúne duas versões do mesmo sistema, cada uma com uma proposta diferente — por isso, cada pasta tem seu próprio README com detalhes específicos:
 

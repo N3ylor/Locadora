@@ -74,7 +74,7 @@ terminal/
 └── UML.md                  # Diagrama de classes (Mermaid)
 ```
 
-## 💡 Por que essa pasta importa
+##  Por que essa pasta importa
 
 A versão com interface gráfica é construída em cima dessa lógica — a diferença é só a camada visual por cima. Se você quer entender **como a locadora realmente funciona por dentro**, sem se preocupar com botões e janelas, é aqui que a resposta está.
 

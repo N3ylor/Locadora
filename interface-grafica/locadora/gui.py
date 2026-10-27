@@ -1,5 +1,7 @@
 import functools
+import math
 import tkinter as tk
+import tkinter.font as tkfont
 from datetime import date, datetime
 from tkinter import messagebox, simpledialog, ttk
 
@@ -7,17 +9,21 @@ from .excecoes import LocadoraError, ValidacaoError
 from .models import Filme, Jogo
 
 CORES = {
-    "fundo": "#f1f3f9",
-    "painel": "#ffffff",
-    "primaria": "#4c6ef5",
-    "primaria_escura": "#3b5bdb",
-    "sucesso": "#2f9e44",
-    "sucesso_escura": "#2b8a3e",
-    "perigo": "#e03131",
-    "perigo_escura": "#c92a2a",
-    "neutro": "#868e96",
-    "neutro_escura": "#6c757d",
-    "texto": "#212529",
+    "fundo": "#14161b",
+    "painel": "#1e2128",
+    "campo": "#2a2e38",
+    "borda": "#3a3f4c",
+    "texto": "#e6e8ee",
+    "sub": "#9aa1b0",
+    "destaque": "#8ea2ff",
+    "primaria": "#5b7cfa",
+    "primaria_escura": "#4766e0",
+    "sucesso": "#2f9e5b",
+    "sucesso_escura": "#278a4e",
+    "perigo": "#e5484d",
+    "perigo_escura": "#c93a3f",
+    "neutro": "#3a3f4c",
+    "neutro_escura": "#4a5060",
 }
 FONTE = "Segoe UI"
 
@@ -25,39 +31,144 @@ FONTE = "Segoe UI"
 def aplicar_estilos(raiz):
     estilo = ttk.Style(raiz)
     estilo.theme_use("clam")
-    raiz.configure(bg=CORES["fundo"])
-    estilo.configure(".", font=(FONTE, 10), foreground=CORES["texto"])
-    estilo.configure("TFrame", background=CORES["fundo"])
-    estilo.configure("TLabel", background=CORES["fundo"])
-    estilo.configure("TCheckbutton", background=CORES["fundo"])
-    estilo.configure("Painel.TFrame", background=CORES["painel"])
-    estilo.configure("Painel.TLabel", background=CORES["painel"])
-    estilo.configure("Painel.TCheckbutton", background=CORES["painel"])
-    estilo.configure("PainelSecao.TLabel", background=CORES["painel"],
-                     font=(FONTE, 13, "bold"), foreground=CORES["primaria_escura"])
-    estilo.configure("Titulo.TLabel", font=(FONTE, 24, "bold"), foreground=CORES["primaria_escura"])
-    estilo.configure("Sub.TLabel", font=(FONTE, 11), foreground=CORES["neutro"])
-    estilo.configure("Resumo.TLabel", background=CORES["painel"], foreground=CORES["primaria_escura"],
+    c = CORES
+    raiz.configure(bg=c["fundo"])
+    estilo.configure(".", font=(FONTE, 10), foreground=c["texto"], background=c["fundo"])
+    estilo.configure("TFrame", background=c["fundo"])
+    estilo.configure("TLabel", background=c["fundo"])
+    estilo.configure("Painel.TFrame", background=c["painel"])
+    estilo.configure("Campo.TFrame", background=c["campo"])
+    estilo.configure("Painel.TLabel", background=c["painel"])
+    for nome, fundo in (("TCheckbutton", c["fundo"]), ("Painel.TCheckbutton", c["painel"])):
+        estilo.configure(nome, background=fundo, foreground=c["texto"], focuscolor=fundo,
+                         indicatorbackground=c["campo"], indicatorforeground=c["texto"],
+                         bordercolor=c["borda"], lightcolor=c["campo"], darkcolor=c["campo"])
+        estilo.map(nome, background=[("active", fundo)],
+                   indicatorbackground=[("selected", c["primaria"]), ("active", c["borda"])])
+    estilo.configure("PainelSecao.TLabel", background=c["painel"],
+                     font=(FONTE, 13, "bold"), foreground=c["destaque"])
+    estilo.configure("Titulo.TLabel", font=(FONTE, 24, "bold"), foreground=c["destaque"])
+    estilo.configure("Sub.TLabel", font=(FONTE, 11), foreground=c["sub"])
+    estilo.configure("Resumo.TLabel", background=c["painel"], foreground=c["destaque"],
                      font=(FONTE, 10, "bold"), anchor="center")
-    botoes = (
-        ("Primario", CORES["primaria"], CORES["primaria_escura"]),
-        ("Sucesso", CORES["sucesso"], CORES["sucesso_escura"]),
-        ("Perigo", CORES["perigo"], CORES["perigo_escura"]),
-        ("Neutro", CORES["neutro"], CORES["neutro_escura"]),
-    )
-    for nome, cor, escura in botoes:
-        estilo.configure(f"{nome}.TButton", background=cor, foreground="white",
-                         font=(FONTE, 10, "bold"), padding=(14, 8), borderwidth=0, focuscolor=cor)
-        estilo.map(f"{nome}.TButton", background=[("active", escura), ("pressed", escura)])
-    estilo.configure("Treeview", rowheight=26, background=CORES["painel"],
-                     fieldbackground=CORES["painel"], borderwidth=0, font=(FONTE, 10))
-    estilo.configure("Treeview.Heading", background=CORES["primaria"], foreground="white",
-                     font=(FONTE, 10, "bold"), padding=6, relief="flat")
-    estilo.map("Treeview", background=[("selected", CORES["primaria"])],
+
+    estilo.configure("Treeview", rowheight=28, background=c["campo"], fieldbackground=c["campo"],
+                     foreground=c["texto"], borderwidth=0, font=(FONTE, 10),
+                     bordercolor=c["campo"], lightcolor=c["campo"], darkcolor=c["campo"])
+    estilo.configure("Treeview.Heading", background=c["borda"], foreground=c["texto"],
+                     font=(FONTE, 10, "bold"), padding=7, relief="flat", borderwidth=0)
+    estilo.map("Treeview", background=[("selected", c["primaria"])],
                foreground=[("selected", "white")])
-    estilo.map("Treeview.Heading", background=[("active", CORES["primaria_escura"])])
-    estilo.configure("TEntry", padding=5)
-    estilo.configure("TCombobox", padding=5)
+    estilo.map("Treeview.Heading", background=[("active", c["neutro_escura"])])
+
+    campo = dict(fieldbackground=c["campo"], foreground=c["texto"], bordercolor=c["borda"],
+                 lightcolor=c["campo"], darkcolor=c["campo"], padding=6)
+    estilo.configure("TEntry", insertcolor=c["texto"], **campo)
+    estilo.map("TEntry", bordercolor=[("focus", c["primaria"])],
+               lightcolor=[("focus", c["primaria"])], darkcolor=[("focus", c["primaria"])])
+    estilo.configure("TCombobox", background=c["campo"], arrowcolor=c["texto"],
+                     selectbackground=c["campo"], selectforeground=c["texto"], **campo)
+    estilo.map("TCombobox", fieldbackground=[("readonly", c["campo"])],
+               foreground=[("readonly", c["texto"])],
+               selectbackground=[("readonly", c["campo"])],
+               selectforeground=[("readonly", c["texto"])],
+               background=[("active", c["borda"]), ("readonly", c["campo"])],
+               bordercolor=[("focus", c["primaria"])])
+    raiz.option_add("*TCombobox*Listbox.background", c["campo"])
+    raiz.option_add("*TCombobox*Listbox.foreground", c["texto"])
+    raiz.option_add("*TCombobox*Listbox.selectBackground", c["primaria"])
+    raiz.option_add("*TCombobox*Listbox.selectForeground", "white")
+    raiz.option_add("*TCombobox*Listbox.font", (FONTE, 10))
+
+    estilo.configure("TScrollbar", background=c["borda"], troughcolor=c["painel"],
+                     bordercolor=c["painel"], arrowcolor=c["texto"], lightcolor=c["borda"],
+                     darkcolor=c["borda"], relief="flat", gripcount=0)
+    estilo.map("TScrollbar", background=[("active", c["neutro_escura"])])
+
+
+def cor_fundo(pai):
+    """Descobre a cor de fundo de um widget para os cantos arredondados combinarem."""
+    try:
+        nome = pai.cget("style") or pai.winfo_class()
+        return ttk.Style().lookup(nome, "background") or CORES["fundo"]
+    except tk.TclError:
+        try:
+            return pai.cget("bg")
+        except tk.TclError:
+            return CORES["fundo"]
+
+
+def retangulo_redondo(canvas, x1, y1, x2, y2, raio, **opcoes):
+    raio = max(0, min(raio, (x2 - x1) / 2, (y2 - y1) / 2))
+    pontos = []
+    # (centro x, centro y, ângulo inicial) de cada canto, no sentido horário
+    for cx, cy, inicio in ((x2 - raio, y1 + raio, -90), (x2 - raio, y2 - raio, 0),
+                           (x1 + raio, y2 - raio, 90), (x1 + raio, y1 + raio, 180)):
+        for passo in range(0, 91, 10):
+            angulo = math.radians(inicio + passo)
+            pontos += [cx + raio * math.cos(angulo), cy + raio * math.sin(angulo)]
+    return canvas.create_polygon(pontos, **opcoes)
+
+
+class Painel(tk.Frame):
+    """Cartão com cantos arredondados. Coloque os widgets dentro de `.conteudo`."""
+
+    def __init__(self, pai, padding=16, raio=16, tom="painel"):
+        super().__init__(pai, bg=cor_fundo(pai), bd=0, highlightthickness=0)
+        self.raio = raio
+        self.tom = CORES[tom]
+        self.desenho = tk.Canvas(self, bg=cor_fundo(pai), highlightthickness=0, bd=0)
+        self.desenho.place(x=0, y=0, relwidth=1, relheight=1)
+        self.conteudo = ttk.Frame(self, style=f"{tom.capitalize()}.TFrame")
+        self.conteudo.pack(fill="both", expand=True, padx=padding, pady=padding)
+        self.desenho.bind("<Configure>", self.redesenhar)
+
+    def redesenhar(self, evento):
+        self.desenho.delete("all")
+        retangulo_redondo(self.desenho, 1, 1, evento.width - 1, evento.height - 1, self.raio,
+                          fill=self.tom, outline=CORES["borda"])
+
+
+class Botao(tk.Canvas):
+    """Botão com cantos arredondados (mesmos parâmetros do ttk.Button usado antes)."""
+    TONS = {"Primario": ("primaria", "primaria_escura"), "Sucesso": ("sucesso", "sucesso_escura"),
+            "Perigo": ("perigo", "perigo_escura"), "Neutro": ("neutro", "neutro_escura")}
+
+    def __init__(self, pai, text="", style="Primario.TButton", command=None):
+        self.fonte = tkfont.Font(family=FONTE, size=10, weight="bold")
+        super().__init__(pai, height=38, width=self.fonte.measure(text) + 40, bg=cor_fundo(pai),
+                         highlightthickness=0, bd=0, cursor="hand2", takefocus=1)
+        normal, destaque = self.TONS[style.split(".")[0]]
+        self.cor_normal, self.cor_destaque = CORES[normal], CORES[destaque]
+        self.cor_atual = self.cor_normal
+        self.rotulo = text
+        self.comando = command
+        self.bind("<Configure>", lambda _e: self.desenhar())
+        self.bind("<Enter>", lambda _e: self.pintar(self.cor_destaque))
+        self.bind("<Leave>", lambda _e: self.pintar(self.cor_normal))
+        self.bind("<ButtonPress-1>", lambda _e: self.pintar(self.cor_destaque))
+        self.bind("<ButtonRelease-1>", self.soltar)
+        self.bind("<Return>", lambda _e: self.disparar())
+        self.bind("<space>", lambda _e: self.disparar())
+
+    def pintar(self, cor):
+        self.cor_atual = cor
+        self.desenhar()
+
+    def desenhar(self):
+        self.delete("all")
+        larg, alt = self.winfo_width(), self.winfo_height()
+        retangulo_redondo(self, 1, 1, larg - 1, alt - 1, 14, fill=self.cor_atual, outline=self.cor_atual)
+        self.create_text(larg / 2, alt / 2, text=self.rotulo, fill="white", font=self.fonte)
+
+    def soltar(self, evento):
+        self.pintar(self.cor_normal)
+        if 0 <= evento.x <= self.winfo_width() and 0 <= evento.y <= self.winfo_height():
+            self.disparar()
+
+    def disparar(self):
+        if self.comando:
+            self.comando()
 
 
 def com_tratamento_de_erro(funcao):
@@ -84,13 +195,14 @@ def ler_data(texto):
 
 
 def criar_tabela(pai, colunas, altura=14):
-    quadro = ttk.Frame(pai)
-    tabela = ttk.Treeview(quadro, columns=[c[0] for c in colunas], show="headings",
+    quadro = Painel(pai, padding=8, raio=14, tom="campo")
+    interior = quadro.conteudo
+    tabela = ttk.Treeview(interior, columns=[c[0] for c in colunas], show="headings",
                           selectmode="browse", height=altura)
     for id_coluna, titulo, largura in colunas:
-        tabela.heading(id_coluna, text=titulo)
+        tabela.heading(id_coluna, text=titulo, anchor="w")
         tabela.column(id_coluna, width=largura, anchor="w")
-    barra = ttk.Scrollbar(quadro, orient="vertical", command=tabela.yview)
+    barra = ttk.Scrollbar(interior, orient="vertical", command=tabela.yview)
     tabela.configure(yscrollcommand=barra.set)
     tabela.pack(side="left", fill="both", expand=True)
     barra.pack(side="right", fill="y")
@@ -101,12 +213,15 @@ def mostrar_recibo(mestre, texto):
     janela = tk.Toplevel(mestre)
     janela.title("Recibo")
     janela.configure(bg=CORES["fundo"])
-    caixa = tk.Text(janela, font=("Consolas", 11), width=50, height=22, bg="white",
-                    relief="flat", padx=12, pady=12)
+    cartao = Painel(janela, padding=14)
+    cartao.pack(padx=16, pady=(16, 8))
+    caixa = tk.Text(cartao.conteudo, font=("Consolas", 11), width=50, height=22, bg=CORES["painel"],
+                    fg=CORES["texto"], insertbackground=CORES["texto"], relief="flat", bd=0,
+                    highlightthickness=0)
     caixa.insert("1.0", texto)
     caixa.configure(state="disabled")
-    caixa.pack(padx=16, pady=(16, 8))
-    ttk.Button(janela, text="Fechar", style="Primario.TButton", command=janela.destroy).pack(pady=(0, 16))
+    caixa.pack()
+    Botao(janela, text="Fechar", style="Primario.TButton", command=janela.destroy).pack(pady=(0, 16))
 
 
 class JanelaBase(tk.Toplevel):
@@ -127,15 +242,19 @@ class JanelaCrud(JanelaBase):
 
     def __init__(self, mestre, locadora):
         super().__init__(mestre, self.titulo, locadora, "900x560")
+        self.geometry(f"900x{min(680, self.winfo_screenheight() - 120)}")
         self.id_atual = None
         self.vars = {}
         self.padroes = {}
         corpo = ttk.Frame(self)
         corpo.pack(fill="both", expand=True, padx=20, pady=(0, 20))
-        formulario = ttk.Frame(corpo, style="Painel.TFrame", padding=16)
-        formulario.pack(side="left", fill="y", padx=(0, 16))
+        painel_form = Painel(corpo, padding=16)
+        painel_form.pack(side="left", fill="y", padx=(0, 16))
+        formulario = painel_form.conteudo
+        botoes = ttk.Frame(formulario, style="Painel.TFrame")   # rodapé fixo, sempre visível
+        botoes.pack(side="bottom", fill="x", pady=(12, 0))
         for chave, rotulo, tipo in self.campos:
-            ttk.Label(formulario, text=rotulo, style="Painel.TLabel").pack(anchor="w", pady=(6, 0))
+            ttk.Label(formulario, text=rotulo, style="Painel.TLabel").pack(anchor="w", pady=(4, 0))
             if tipo == "check":
                 self.padroes[chave] = False
                 self.vars[chave] = tk.BooleanVar(value=False)
@@ -150,11 +269,9 @@ class JanelaCrud(JanelaBase):
                 self.padroes[chave] = ""
                 self.vars[chave] = tk.StringVar(value="")
                 ttk.Entry(formulario, textvariable=self.vars[chave], width=28).pack(anchor="w")
-        botoes = ttk.Frame(formulario, style="Painel.TFrame")
-        botoes.pack(fill="x", pady=(18, 0))
-        ttk.Button(botoes, text="Salvar", style="Primario.TButton", command=self.salvar).pack(fill="x", pady=3)
-        ttk.Button(botoes, text="Limpar", style="Neutro.TButton", command=self.limpar).pack(fill="x", pady=3)
-        ttk.Button(botoes, text="Excluir", style="Perigo.TButton", command=self.excluir).pack(fill="x", pady=3)
+        Botao(botoes, text="Salvar", style="Primario.TButton", command=self.salvar).pack(fill="x", pady=3)
+        Botao(botoes, text="Limpar", style="Neutro.TButton", command=self.limpar).pack(fill="x", pady=3)
+        Botao(botoes, text="Excluir", style="Perigo.TButton", command=self.excluir).pack(fill="x", pady=3)
         quadro, self.tabela = criar_tabela(corpo, self.colunas)
         quadro.pack(side="left", fill="both", expand=True)
         self.tabela.bind("<<TreeviewSelect>>", self.ao_selecionar)
@@ -311,12 +428,36 @@ class JanelaAcervo(JanelaCrud):
 class JanelaLocacoes(JanelaBase):
     def __init__(self, mestre, locadora):
         super().__init__(mestre, "Locações e devoluções", locadora, "1150x660")
+        altura = min(660, self.winfo_screenheight() - 120)
+        self.geometry(f"1150x{altura}")
+        self.minsize(900, 420)
         self.carrinho = []
         corpo = ttk.Frame(self)
         corpo.pack(fill="both", expand=True, padx=20, pady=(0, 20))
 
-        esquerda = ttk.Frame(corpo, style="Painel.TFrame", padding=16)
-        esquerda.pack(side="left", fill="y", padx=(0, 16))
+        painel_lateral = Painel(corpo, padding=8)
+        painel_lateral.pack(side="left", fill="y", padx=(0, 16))
+        lateral = painel_lateral.conteudo
+
+        # rodapé fixo: sempre visível, mesmo com a janela pequena
+        rodape = ttk.Frame(lateral, style="Painel.TFrame", padding=(16, 8, 16, 16))
+        rodape.pack(side="bottom", fill="x")
+
+        # parte de cima com rolagem
+        canvas = tk.Canvas(lateral, bg=CORES["painel"], highlightthickness=0)
+        barra_lateral = ttk.Scrollbar(lateral, orient="vertical", command=canvas.yview)
+        canvas.configure(yscrollcommand=barra_lateral.set)
+        barra_lateral.pack(side="right", fill="y")
+        canvas.pack(side="left", fill="both", expand=True)
+        esquerda = ttk.Frame(canvas, style="Painel.TFrame", padding=16)
+        canvas.create_window((0, 0), window=esquerda, anchor="nw")
+        esquerda.bind("<Configure>", lambda _e: canvas.configure(
+            scrollregion=canvas.bbox("all"), width=esquerda.winfo_reqwidth()))
+
+        def rolar(evento):
+            canvas.yview_scroll(int(-evento.delta / 120), "units")
+        canvas.bind("<Enter>", lambda _e: canvas.bind_all("<MouseWheel>", rolar))
+        canvas.bind("<Leave>", lambda _e: canvas.unbind_all("<MouseWheel>"))
         ttk.Label(esquerda, text="Nova locação", style="PainelSecao.TLabel").pack(anchor="w")
         self.var_cliente, self.cb_cliente = self.criar_combo(esquerda, "Cliente")
         self.var_funcionario, self.cb_funcionario = self.criar_combo(esquerda, "Funcionário")
@@ -324,17 +465,19 @@ class JanelaLocacoes(JanelaBase):
         ttk.Label(esquerda, text="Dias", style="Painel.TLabel").pack(anchor="w", pady=(6, 0))
         self.var_dias = tk.StringVar(value="1")
         ttk.Entry(esquerda, textvariable=self.var_dias, width=8).pack(anchor="w")
-        ttk.Button(esquerda, text="Adicionar ao carrinho", style="Neutro.TButton",
+        Botao(esquerda, text="Adicionar ao carrinho", style="Neutro.TButton",
                    command=self.adicionar_ao_carrinho).pack(fill="x", pady=(10, 4))
-        quadro, self.tabela_carrinho = criar_tabela(esquerda, [("item", "Item", 230), ("dias", "Dias", 50)], altura=5)
+        quadro, self.tabela_carrinho = criar_tabela(esquerda, [("item", "Item", 230), ("dias", "Dias", 50)], altura=4)
         quadro.pack(fill="x", pady=4)
-        ttk.Button(esquerda, text="Esvaziar carrinho", style="Neutro.TButton",
+        Botao(esquerda, text="Esvaziar carrinho", style="Neutro.TButton",
                    command=self.limpar_carrinho).pack(fill="x", pady=(2, 8))
-        ttk.Label(esquerda, text="Data da locação (dd/mm/aaaa)", style="Painel.TLabel").pack(anchor="w")
+        ttk.Label(rodape, text="Data da locação (dd/mm/aaaa)", style="Painel.TLabel").pack(anchor="w")
         self.var_data = tk.StringVar(value=hoje_texto())
-        ttk.Entry(esquerda, textvariable=self.var_data, width=14).pack(anchor="w")
-        ttk.Button(esquerda, text="Registrar locação", style="Sucesso.TButton",
-                   command=self.registrar).pack(fill="x", pady=(14, 0))
+        ttk.Entry(rodape, textvariable=self.var_data, width=14).pack(anchor="w")
+        Botao(rodape, text="Registrar locação", style="Sucesso.TButton",
+                   command=self.registrar).pack(fill="x", pady=(10, 4))
+        Botao(rodape, text="Voltar ao início", style="Neutro.TButton",
+                   command=self.destroy).pack(fill="x")
 
         direita = ttk.Frame(corpo)
         direita.pack(side="left", fill="both", expand=True)
@@ -347,8 +490,8 @@ class JanelaLocacoes(JanelaBase):
         quadro.pack(fill="both", expand=True)
         botoes = ttk.Frame(direita)
         botoes.pack(fill="x", pady=(10, 0))
-        ttk.Button(botoes, text="Devolver", style="Sucesso.TButton", command=self.devolver).pack(side="left")
-        ttk.Button(botoes, text="Ver recibo", style="Primario.TButton", command=self.ver_recibo).pack(side="left", padx=8)
+        Botao(botoes, text="Devolver", style="Sucesso.TButton", command=self.devolver).pack(side="left")
+        Botao(botoes, text="Ver recibo", style="Primario.TButton", command=self.ver_recibo).pack(side="left", padx=8)
 
         self.carregar_opcoes()
         self.atualizar_tabela()
@@ -448,16 +591,19 @@ class App(tk.Tk):
         aplicar_estilos(self)
         ttk.Label(self, text="Locadora", style="Titulo.TLabel").pack(pady=(28, 0))
         ttk.Label(self, text="Filmes e jogos", style="Sub.TLabel").pack(pady=(0, 18))
-        self.resumo = ttk.Label(self, text="", style="Resumo.TLabel", padding=12)
-        self.resumo.pack(fill="x", padx=40, pady=(0, 18))
+        caixa_resumo = Painel(self, padding=8)
+        caixa_resumo.pack(fill="x", padx=40, pady=(0, 18))
+        self.resumo = ttk.Label(caixa_resumo.conteudo, text="", style="Resumo.TLabel", padding=6,
+                                anchor="center")
+        self.resumo.pack(fill="x")
         menu = ttk.Frame(self)
         menu.pack(fill="x", padx=40)
         telas = (("Clientes", JanelaClientes), ("Funcionários", JanelaFuncionarios),
                  ("Acervo", JanelaAcervo), ("Locações e devoluções", JanelaLocacoes))
         for texto, classe in telas:
-            ttk.Button(menu, text=texto, style="Primario.TButton",
+            Botao(menu, text=texto, style="Primario.TButton",
                        command=lambda c=classe: self.abrir(c)).pack(fill="x", pady=5)
-        ttk.Button(menu, text="Sair", style="Perigo.TButton", command=self.destroy).pack(fill="x", pady=(14, 0))
+        Botao(menu, text="Sair", style="Perigo.TButton", command=self.destroy).pack(fill="x", pady=(14, 0))
         self.atualizar_resumo()
         self.bind("<FocusIn>", lambda _evento: self.atualizar_resumo())
 

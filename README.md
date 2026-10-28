@@ -66,3 +66,4 @@ python -m unittest discover -s tests -t .
 ## Autor
 
 Neylor Cruz — [@N3ylim](https://github.com/N3ylim)
+José Antônio - [https://github.com/ja2462445-bit]

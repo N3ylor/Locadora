@@ -81,3 +81,5 @@ A versão com interface gráfica é construída em cima dessa lógica — a dife
 ## Autor
 
 Neylor Cruz — [@N3ylim](https://github.com/N3ylim)
+
+José Antônio - [https://github.com/ja2462445-bit]

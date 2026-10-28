@@ -88,3 +88,5 @@ Além da interface, esta pasta traz uma evolução nas regras: a classe `Locador
 ## Autor
 
 Neylor Cruz — [@N3ylim](https://github.com/N3ylim)
+
+José Antônio - [https://github.com/ja2462445-bit]

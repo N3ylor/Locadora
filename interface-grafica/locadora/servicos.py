@@ -24,14 +24,16 @@ class Locadora:
             return self.clientes.adicionar(cliente)
 
     def atualizar_cliente(self, id, nome, cpf, rua, numero, cidade, uf):
-        self._exigir(self.clientes.buscar(id), "Cliente", id)
+        self._exigir(self.clientes.buscar(id, incluir_inativos=False), "Cliente", id)
         novo = Cliente(nome, cpf, rua, numero, cidade, uf, id=id)
         with self.db.transacao():
             self.clientes.atualizar(novo)
         return novo
 
     def remover_cliente(self, id):
-        self._exigir(self.clientes.buscar(id), "Cliente", id)
+        self._exigir(self.clientes.buscar(id, incluir_inativos=False), "Cliente", id)
+        if self.locacoes.tem_aberta_cliente(id):
+            raise RegraNegocioError("Cliente possui locação em aberto e não pode ser removido.")
         with self.db.transacao():
             self.clientes.remover(id)
 
@@ -44,14 +46,16 @@ class Locadora:
             return self.funcionarios.adicionar(func)
 
     def atualizar_funcionario(self, id, nome, cpf, cargo):
-        self._exigir(self.funcionarios.buscar(id), "Funcionário", id)
+        self._exigir(self.funcionarios.buscar(id, incluir_inativos=False), "Funcionário", id)
         novo = Funcionario(nome, cpf, cargo, id=id)
         with self.db.transacao():
             self.funcionarios.atualizar(novo)
         return novo
 
     def remover_funcionario(self, id):
-        self._exigir(self.funcionarios.buscar(id), "Funcionário", id)
+        self._exigir(self.funcionarios.buscar(id, incluir_inativos=False), "Funcionário", id)
+        if self.locacoes.tem_aberta_funcionario(id):
+            raise RegraNegocioError("Funcionário possui locação em aberto e não pode ser removido.")
         with self.db.transacao():
             self.funcionarios.remover(id)
 
@@ -69,7 +73,7 @@ class Locadora:
             return self.itens.adicionar(jogo)
 
     def atualizar_item(self, id, item):
-        atual = self._exigir(self.itens.buscar(id), "Item", id)
+        atual = self._exigir(self.itens.buscar(id, incluir_inativos=False), "Item", id)
         if type(atual) is not type(item):
             raise RegraNegocioError("Não é possível trocar o tipo do item (filme ou jogo).")
         item.id = id
@@ -79,7 +83,7 @@ class Locadora:
         return item
 
     def remover_item(self, id):
-        item = self._exigir(self.itens.buscar(id), "Item", id)
+        item = self._exigir(self.itens.buscar(id, incluir_inativos=False), "Item", id)
         if not item.disponivel:
             raise RegraNegocioError("Item está alugado e não pode ser removido.")
         with self.db.transacao():
@@ -89,8 +93,8 @@ class Locadora:
         return self.itens.listar(apenas_disponiveis)
 
     def alugar(self, cliente_id, funcionario_id, pedidos, data=None):
-        cliente = self._exigir(self.clientes.buscar(cliente_id), "Cliente", cliente_id)
-        func = self._exigir(self.funcionarios.buscar(funcionario_id), "Funcionário", funcionario_id)
+        cliente = self._exigir(self.clientes.buscar(cliente_id, incluir_inativos=False), "Cliente", cliente_id)
+        func = self._exigir(self.funcionarios.buscar(funcionario_id, incluir_inativos=False), "Funcionário", funcionario_id)
         if not pedidos:
             raise ValidacaoError("Informe ao menos um item.")
         if self.locacoes.contar_itens_abertos(cliente_id) + len(pedidos) > Cliente.LIMITE_ITENS:
@@ -98,7 +102,7 @@ class Locadora:
                 f"Limite de {Cliente.LIMITE_ITENS} itens alugados ao mesmo tempo excedido.")
         locacao = Locacao(cliente, func, data)
         for item_id, dias in pedidos:
-            item = self._exigir(self.itens.buscar(item_id), "Item", item_id)
+            item = self._exigir(self.itens.buscar(item_id, incluir_inativos=False), "Item", item_id)
             locacao.adicionar_item(item, dias)
         with self.db.transacao():
             self.locacoes.adicionar(locacao)

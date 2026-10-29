@@ -59,7 +59,33 @@ class TestClientes(BaseTeste):
             self.s.remover_cliente(self.cli.id)
 
 
+    def test_remover_com_locacao_devolvida_permitido(self):
+        loc = self.s.alugar(self.cli.id, self.fun.id, [(self.filme.id, 1)])
+        self.s.devolver(loc.id)
+        self.s.remover_cliente(self.cli.id)
+        self.assertEqual(self.s.listar_clientes(), [])
+        # histórico e recibo continuam acessíveis
+        self.assertIn(self.cli.nome, self.s.recibo(loc.id))
+
+    def test_recadastrar_cpf_de_cliente_removido(self):
+        loc = self.s.alugar(self.cli.id, self.fun.id, [(self.filme.id, 1)])
+        self.s.devolver(loc.id)
+        self.s.remover_cliente(self.cli.id)
+        novo = self.s.cadastrar_cliente("Ana Nova", self.cli.cpf, "Rua A", "1", "Gama", "DF")
+        self.assertEqual(len(self.s.listar_clientes()), 1)
+        self.assertEqual(novo.nome, "Ana Nova")
+
+
 class TestFuncionarios(BaseTeste):
+    def test_remover_com_locacao_devolvida_permitido(self):
+        loc = self.s.alugar(self.cli.id, self.fun.id, [(self.filme.id, 1)])
+        with self.assertRaises(RegraNegocioError):
+            self.s.remover_funcionario(self.fun.id)  # locação em aberto bloqueia
+        self.s.devolver(loc.id)
+        self.s.remover_funcionario(self.fun.id)
+        self.assertEqual(self.s.listar_funcionarios(), [])
+        self.assertIn(self.fun.nome, self.s.recibo(loc.id))
+
     def test_crud(self):
         f2 = self.s.cadastrar_funcionario("Carla", "55566677788", "Gerente")
         self.assertEqual(self.s.funcionarios.buscar(f2.id).cargo, "Gerente")

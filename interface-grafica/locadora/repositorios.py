@@ -15,6 +15,14 @@ class ClienteRepositorio:
         return Cliente(r["nome"], r["cpf"], r["rua"], r["numero"], r["cidade"], r["uf"], id=r["id"])
 
     def adicionar(self, c):
+        antigo = self.db.conn.execute(
+            "SELECT id FROM clientes WHERE cpf=? AND ativo=0", (c.cpf,)).fetchone()
+        if antigo:  # CPF de um cliente excluído: reativa o cadastro com os dados novos
+            c.id = antigo["id"]
+            self.db.conn.execute(
+                "UPDATE clientes SET nome=?, rua=?, numero=?, cidade=?, uf=?, ativo=1 WHERE id=?",
+                (c.nome, c.endereco.rua, c.endereco.numero, c.endereco.cidade, c.endereco.uf, c.id))
+            return c
         try:
             cur = self.db.conn.execute(
                 "INSERT INTO clientes (nome, cpf, rua, numero, cidade, uf) VALUES (?,?,?,?,?,?)",
@@ -24,12 +32,14 @@ class ClienteRepositorio:
         c.id = cur.lastrowid
         return c
 
-    def buscar(self, id):
-        r = self.db.conn.execute("SELECT * FROM clientes WHERE id=?", (id,)).fetchone()
+    def buscar(self, id, incluir_inativos=True):
+        sql = "SELECT * FROM clientes WHERE id=?" + ("" if incluir_inativos else " AND ativo=1")
+        r = self.db.conn.execute(sql, (id,)).fetchone()
         return self._de_linha(r) if r else None
 
     def listar(self):
-        return [self._de_linha(r) for r in self.db.conn.execute("SELECT * FROM clientes ORDER BY nome")]
+        return [self._de_linha(r) for r in
+                self.db.conn.execute("SELECT * FROM clientes WHERE ativo=1 ORDER BY nome")]
 
     def atualizar(self, c):
         try:
@@ -41,10 +51,11 @@ class ClienteRepositorio:
         return cur.rowcount > 0
 
     def remover(self, id):
-        try:
+        # com histórico de locações só desativa (o histórico/recibos continuam válidos)
+        if self.db.conn.execute("SELECT 1 FROM locacoes WHERE cliente_id=? LIMIT 1", (id,)).fetchone():
+            cur = self.db.conn.execute("UPDATE clientes SET ativo=0 WHERE id=?", (id,))
+        else:
             cur = self.db.conn.execute("DELETE FROM clientes WHERE id=?", (id,))
-        except sqlite3.IntegrityError:
-            raise RegraNegocioError("Cliente possui locações registradas e não pode ser removido.")
         return cur.rowcount > 0
 
 
@@ -57,6 +68,13 @@ class FuncionarioRepositorio:
         return Funcionario(r["nome"], r["cpf"], r["cargo"], id=r["id"])
 
     def adicionar(self, f):
+        antigo = self.db.conn.execute(
+            "SELECT id FROM funcionarios WHERE cpf=? AND ativo=0", (f.cpf,)).fetchone()
+        if antigo:
+            f.id = antigo["id"]
+            self.db.conn.execute("UPDATE funcionarios SET nome=?, cargo=?, ativo=1 WHERE id=?",
+                                 (f.nome, f.cargo, f.id))
+            return f
         try:
             cur = self.db.conn.execute(
                 "INSERT INTO funcionarios (nome, cpf, cargo) VALUES (?,?,?)", (f.nome, f.cpf, f.cargo))
@@ -65,12 +83,14 @@ class FuncionarioRepositorio:
         f.id = cur.lastrowid
         return f
 
-    def buscar(self, id):
-        r = self.db.conn.execute("SELECT * FROM funcionarios WHERE id=?", (id,)).fetchone()
+    def buscar(self, id, incluir_inativos=True):
+        sql = "SELECT * FROM funcionarios WHERE id=?" + ("" if incluir_inativos else " AND ativo=1")
+        r = self.db.conn.execute(sql, (id,)).fetchone()
         return self._de_linha(r) if r else None
 
     def listar(self):
-        return [self._de_linha(r) for r in self.db.conn.execute("SELECT * FROM funcionarios ORDER BY nome")]
+        return [self._de_linha(r) for r in
+                self.db.conn.execute("SELECT * FROM funcionarios WHERE ativo=1 ORDER BY nome")]
 
     def atualizar(self, f):
         try:
@@ -81,10 +101,10 @@ class FuncionarioRepositorio:
         return cur.rowcount > 0
 
     def remover(self, id):
-        try:
+        if self.db.conn.execute("SELECT 1 FROM locacoes WHERE funcionario_id=? LIMIT 1", (id,)).fetchone():
+            cur = self.db.conn.execute("UPDATE funcionarios SET ativo=0 WHERE id=?", (id,))
+        else:
             cur = self.db.conn.execute("DELETE FROM funcionarios WHERE id=?", (id,))
-        except sqlite3.IntegrityError:
-            raise RegraNegocioError("Funcionário possui locações registradas e não pode ser removido.")
         return cur.rowcount > 0
 
 
@@ -114,12 +134,13 @@ class ItemRepositorio:
         item.id = cur.lastrowid
         return item
 
-    def buscar(self, id):
-        r = self.db.conn.execute("SELECT * FROM itens WHERE id=?", (id,)).fetchone()
+    def buscar(self, id, incluir_inativos=True):
+        sql = "SELECT * FROM itens WHERE id=?" + ("" if incluir_inativos else " AND ativo=1")
+        r = self.db.conn.execute(sql, (id,)).fetchone()
         return self._de_linha(r) if r else None
 
     def listar(self, apenas_disponiveis=False):
-        sql = "SELECT * FROM itens" + (" WHERE disponivel=1" if apenas_disponiveis else "") + " ORDER BY titulo"
+        sql = "SELECT * FROM itens WHERE ativo=1" + (" AND disponivel=1" if apenas_disponiveis else "") + " ORDER BY titulo"
         return [self._de_linha(r) for r in self.db.conn.execute(sql)]
 
     def atualizar(self, item):
@@ -132,10 +153,10 @@ class ItemRepositorio:
         self.db.conn.execute("UPDATE itens SET disponivel=? WHERE id=?", (int(item.disponivel), item.id))
 
     def remover(self, id):
-        try:
+        if self.db.conn.execute("SELECT 1 FROM locacao_itens WHERE item_id=? LIMIT 1", (id,)).fetchone():
+            cur = self.db.conn.execute("UPDATE itens SET ativo=0 WHERE id=?", (id,))
+        else:
             cur = self.db.conn.execute("DELETE FROM itens WHERE id=?", (id,))
-        except sqlite3.IntegrityError:
-            raise RegraNegocioError("Item possui locações registradas e não pode ser removido.")
         return cur.rowcount > 0
 
 
@@ -184,3 +205,13 @@ class LocacaoRepositorio:
         return self.db.conn.execute(
             "SELECT COUNT(*) FROM locacao_itens li JOIN locacoes l ON l.id = li.locacao_id "
             "WHERE l.cliente_id=? AND l.data_devolucao IS NULL", (cliente_id,)).fetchone()[0]
+
+    def tem_aberta_cliente(self, cliente_id):
+        return self.db.conn.execute(
+            "SELECT 1 FROM locacoes WHERE cliente_id=? AND data_devolucao IS NULL LIMIT 1",
+            (cliente_id,)).fetchone() is not None
+
+    def tem_aberta_funcionario(self, funcionario_id):
+        return self.db.conn.execute(
+            "SELECT 1 FROM locacoes WHERE funcionario_id=? AND data_devolucao IS NULL LIMIT 1",
+            (funcionario_id,)).fetchone() is not None

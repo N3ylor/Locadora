@@ -12,7 +12,7 @@ O repositório acompanha a evolução da aplicação: primeiro um programa de te
 | --- | --- | --- | --- |
 | [`terminal/`](terminal/) | Menu no terminal | Python, SQLite | [README](terminal/README.md) |
 | [`interface-grafica/`](interface-grafica/) | Janelas desktop | Python, Tkinter, SQLite | [README](interface-grafica/README.md) |
-| [`Locadora-Web/`](Locadora-Web/) | Navegador | Python, Flask, HTML, CSS, SQLite, Docker | [README da versão web](Locadora-Web/README.md) |
+| [`Locadora-Web/`](Locadora-Web/) | Navegador | Python, Flask, HTML, CSS, SQLite, Docker | [README](Locadora-Web/README.md) |
 
 ## Funcionalidades
 

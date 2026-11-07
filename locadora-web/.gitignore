@@ -1,0 +1,22 @@
+# Segredos e dados locais — nunca publicar
+.env
+.env.*
+!.env.example
+cookies*.txt
+data/
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/
+
+# Sistema
+.DS_Store
+__MACOSX/
+*.zip

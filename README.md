@@ -1,24 +1,25 @@
 # Locadora
 
-![Linguagem](https://img.shields.io/badge/python-3-blue?style=flat-square) ![POO](https://img.shields.io/badge/paradigma-POO-4f7d9c?style=flat-square) ![Banco](https://img.shields.io/badge/banco-SQLite-003b57?style=flat-square) ![Dependências](https://img.shields.io/badge/depend%C3%AAncias-nenhuma-brightgreen?style=flat-square) ![Status](https://img.shields.io/badge/status-conclu%C3%ADdo-brightgreen?style=flat-square)
+![Linguagem](https://img.shields.io/badge/python-3-blue?style=flat-square) ![POO](https://img.shields.io/badge/paradigma-POO-4f7d9c?style=flat-square) ![Banco](https://img.shields.io/badge/banco-SQLite-003b57?style=flat-square) ![Dependências](https://img.shields.io/badge/depend%C3%AAncias-nenhuma%20(exceto%20web)-brightgreen?style=flat-square) ![Status](https://img.shields.io/badge/status-conclu%C3%ADdo-brightgreen?style=flat-square)
 
 **Locadora** é um sistema de locadora de **filmes e jogos** desenvolvido em Python. Nasceu como projeto acadêmico para praticar **Programação Orientada a Objetos** — herança, polimorfismo, composição, associação e dependência — num problema com regras de negócio de verdade: preços diferentes por tipo de item, prazos, multa por atraso e limite de itens por cliente.
 
-Tudo usa apenas a biblioteca padrão do Python, com os dados guardados em **SQLite**.
+As versões `terminal/` e `interface-grafica/` usam apenas a biblioteca padrão do Python; a versão `locadora-web/` usa o framework **BMVC** (Bottle) e roda em **Docker**. Em todas, os dados ficam em **SQLite**.
 
 ##  Estrutura do repositório
 
-Este repositório reúne duas versões do mesmo sistema, cada uma com uma proposta diferente — por isso, cada pasta tem seu próprio README com detalhes específicos:
+Este repositório reúne três versões do mesmo sistema, cada uma com uma proposta diferente — por isso, cada pasta tem seu próprio README com detalhes específicos:
 
 | Pasta | O que é | Leia mais |
 | --- | --- | --- |
 | [`terminal/`](terminal) | A base do projeto: modelos, banco, regras de negócio e um menu interativo no terminal. Sem interface gráfica e sem dependências. | [README](terminal/README.md) |
 | [`interface-grafica/`](interface-grafica) | A evolução do projeto: a mesma base, agora com janelas e botões em **Tkinter**. Mantém o menu de terminal também. | [README](interface-grafica/README.md) |
+| [`locadora-web/`](locadora-web) | A versão **web**, feita com o framework **BMVC** (Bottle + MVC): login com perfis de **administrador** e **cliente**, catálogo de filmes e jogos, cadastro de clientes, **locação e devolução** pelo navegador (limite de 3 itens, desconto em jogos, multa por atraso), API CRUD usada por cURL e execução com **Docker**. Não inclui a categoria "filme lançamento" nem o recibo. | [README](locadora-web/README.md) |
 | [`UML/`](UML) | Diagrama de classes do projeto, em imagem e no código-fonte Mermaid. | — |
 
 ## A ideia por trás do projeto
 
-Independente da pasta, as duas versões compartilham o mesmo design em camadas:
+As versões `terminal/` e `interface-grafica/` compartilham o mesmo design em camadas (a `locadora-web/` segue a arquitetura MVC do BMVC, descrita no README dela):
 
 - **Modelos** (`models/`): as classes do domínio — `Pessoa`, `Cliente`, `Funcionario`, `Endereco`, `Item`, `Filme`, `Jogo`, `Locacao`, `ItemLocacao` e `Recibo`. É aqui que mora a POO.
 - **Persistência** (`database.py` e `repositorios.py`): conexão com o SQLite e um repositório para cada entidade, que transforma linhas do banco em objetos.
@@ -39,6 +40,8 @@ Independente da pasta, as duas versões compartilham o mesmo design em camadas:
 
 ##  Regras de negócio
 
+Valem para as versões `terminal/` e `interface-grafica/`. A `locadora-web/` aplica o limite de 3 itens, o desconto de jogos e a multa por tipo, mas usa como diária o valor cadastrado em cada item e não tem "filme lançamento" nem recibo.
+
 | Item | Diária | Multa por dia de atraso |
 | --- | --- | --- |
 | Filme | R$ 6,00 | R$ 2,00 |
@@ -51,16 +54,25 @@ Independente da pasta, as duas versões compartilham o mesmo design em camadas:
 
 ##  Testes
 
-As duas versões têm testes automáticos com `unittest` — modelos e regras de negócio, usando banco em memória. Para rodar, dentro da pasta da versão escolhida:
+As versões `terminal/` e `interface-grafica/` têm testes automáticos com `unittest` — modelos e regras de negócio, usando banco em memória. Para rodar, dentro da pasta da versão escolhida:
 
 ```
 python -m unittest discover -s tests -t .
+```
+
+A `locadora-web/` usa `pytest` (login, perfis, CRUD, locação e multa, validação, concorrência e persistência), executado também no GitHub Actions. Para rodar, dentro de `locadora-web/`:
+
+```
+python3 -m venv .venv && . .venv/bin/activate
+pip install -r requirements-dev.txt
+python -m pytest -v
 ```
 
 ## Por onde começar
 
 - Quer entender as regras e o design sem interface nenhuma no meio? Vá direto ao [`terminal/`](terminal).
 - Quer ver o sistema funcionando com janelas e botões? Veja [`interface-grafica/`](interface-grafica).
+- Quer ver a locadora como aplicação web, com login de administrador e de cliente, rodando em Docker? Veja [`locadora-web/`](locadora-web).
 - Quer ver como as classes se relacionam? Abra o [diagrama de classes](UML/diagrama_classes.png).
 
 ## Autor

@@ -1,0 +1,18 @@
+services:
+  locadora-web:
+    build: .
+    ports:
+      - "${HOST_PORT:-8080}:8080"
+    environment:
+      ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?Crie o arquivo .env (cp .env.example .env) e defina ADMIN_PASSWORD}
+      # Use "true" apenas quando o acesso for por HTTPS (senão o cookie não é enviado em HTTP).
+      COOKIE_SECURE: ${COOKIE_SECURE:-false}
+      TIMEZONE: ${TIMEZONE:-America/Sao_Paulo}
+      DB_PATH: /data/locadora.db
+    volumes:
+      - locadora_data:/data
+    restart: unless-stopped
+
+volumes:
+  locadora_data:
